@@ -5,14 +5,18 @@
 #define ONE_WIRE_BUS 2
 #include <OneWire.h>
 #include <DallasTemperature.h>
+#include <WiFiUdp.h>
+#include <ArduinoOTA.h>
 // #include <SimpleTimer.h>
  
-char auth[] = "Dc7JizofxNe9-PqsrEXqRPDfQS85tozB ";
+char auth[] = "MfyPfotapG4rRVeeIMrlQD9Ox-PXX0oJ";
  
 // Your WiFi credentials.
 // Set password to "" for open networks.
 const char* ssid     = "GAASI_WIFI-EXT-2";
 const char* pass = "armando1";
+int temp_visoka_t1, temp_previsoka_t1, temp_niska_t1, temp_preniska_t1,vlaga_visoka_1, vlaga_previsoka_1, vlaga_niska_1, vlaga_preniska_1,vlaga_visoka_2, vlaga_previsoka_2, vlaga_niska_2, vlaga_preniska_2;
+bool notifikacije_t1,n1t1=0,n2t1=0,n3t1,n4t1,notifikacije_t2,n1t2=0,n2t2=0,n3t2,n4t2,notifikacije_t5,n1t5=0,n2t5=0,n3t5,n4t5;
  
 BlynkTimer  timer;
 OneWire oneWire(ONE_WIRE_BUS);
@@ -21,7 +25,110 @@ DallasTemperature sensors(&oneWire);
 String myString; // complete message from arduino, which consistors of snesors data
 char rdata; // received charactors
  
-float prva,druga,treca,temp;
+int prva,druga,treca;
+float temp;
+
+BLYNK_CONNECTED() 
+{
+  // Request the latest state from the server
+  Blynk.syncVirtual(V1);
+  Blynk.syncVirtual(V6);
+  Blynk.syncVirtual(V7);
+  Blynk.syncVirtual(V8);
+  Blynk.syncVirtual(V9);
+  Blynk.syncVirtual(V10);
+  Blynk.syncVirtual(V15);
+  Blynk.syncVirtual(V16);
+  Blynk.syncVirtual(V17);
+  Blynk.syncVirtual(V18);
+  Blynk.syncVirtual(V19);
+  Blynk.syncVirtual(V20);
+  Blynk.syncVirtual(V21);
+  Blynk.syncVirtual(V22);
+  Blynk.syncVirtual(V23);
+  Blynk.syncVirtual(V24);
+   
+}
+
+BLYNK_WRITE(V6)
+{
+  temp_visoka_t1=param.asInt();
+}
+
+BLYNK_WRITE(V7)
+{
+  temp_previsoka_t1=param.asInt();
+}
+BLYNK_WRITE(V8)
+{
+  temp_niska_t1=param.asInt();
+}
+
+BLYNK_WRITE(V9)
+{
+  temp_preniska_t1=param.asInt();
+}
+ BLYNK_WRITE(V10)
+{
+ notifikacije_t1=param.asInt();
+}
+BLYNK_WRITE(V15)
+{
+  vlaga_visoka_1=param.asInt();
+}
+
+
+BLYNK_WRITE(V16)
+{
+  vlaga_previsoka_1=param.asInt();
+}
+BLYNK_WRITE(V17)
+{
+  vlaga_niska_1=param.asInt();
+}
+
+BLYNK_WRITE(V18)
+{
+  vlaga_preniska_1=param.asInt();
+}
+ BLYNK_WRITE(V19)
+{
+ notifikacije_t2=param.asInt();
+}
+BLYNK_WRITE(V20)
+{
+  vlaga_visoka_2=param.asInt();
+}
+
+
+BLYNK_WRITE(V21)
+{
+  vlaga_previsoka_2=param.asInt();
+}
+BLYNK_WRITE(V22)
+{
+  vlaga_niska_2=param.asInt();
+}
+
+BLYNK_WRITE(V23)
+{
+  vlaga_preniska_2=param.asInt();
+}
+ BLYNK_WRITE(V24)
+{
+ notifikacije_t5=param.asInt();
+}
+
+BLYNK_WRITE(V1) 
+{//reset botun
+ if((param.asInt()==1))
+  {
+  ESP.restart();
+  }
+}
+
+
+
  
 void setup()
 {
@@ -54,15 +161,124 @@ if (Serial.available() > 0 )
       {
         String l = getValue(myString, ',', 0);
         String m = getValue(myString, ',', 1);
-        String n = getValue(myString, ',', 2); 
+       // String n = getValue(myString, ',', 2); 
 
         prva = l.toFloat();
         druga = m.toInt();
-        treca = n.toInt();
+       // treca = n.toInt();
         myString = "";
         // end new code
       }
    }
+if(notifikacije_t1==HIGH)
+    {
+      if ((temp<temp_visoka_t1))
+         n1t1=0;
+      if ((temp<temp_previsoka_t1))
+         n2t1=0;
+      if ((temp>temp_niska_t1))
+         n3t1=0;
+      if ((temp>temp_preniska_t1))
+         n4t1=0;         
+         
+      if ((temp>temp_visoka_t1)&&(n1t1==0))
+         {
+          n1t1=1;
+          Blynk.notify("T1 temperatura visoka");
+         } 
+      
+      if ((temp>temp_previsoka_t1)&&(n2t1==0))
+         {
+          n2t1=1;
+          Blynk.notify("T1 temperatura previsoka !!!");
+         }
+      if ((temp<temp_niska_t1)&&(n3t1==0))
+         {
+          n3t1=1;
+          Blynk.notify("T1 temperatura niska");
+         } 
+      
+      if ((temp<temp_preniska_t1)&&(n4t1==0))
+         {
+          n4t1=1;
+          Blynk.notify("T1 temperatura preniska !!!");
+         }   
+    }  
+if(notifikacije_t2==HIGH)
+    {
+      if ((prva<vlaga_visoka_1))
+         n1t2=0;
+      if ((prva<vlaga_previsoka_1))
+         n2t2=0;
+      if ((prva>vlaga_niska_1))
+         n3t2=0;
+      if ((prva>vlaga_preniska_1))
+         n4t2=0;         
+         
+      if ((prva>vlaga_visoka_1)&&(n1t2==0))
+         {
+          n1t2=1;
+          Blynk.notify("T2 temperatura visoka");
+         } 
+      
+      if ((prva>vlaga_previsoka_1)&&(n2t2==0))
+         {
+          n2t2=1;
+          Blynk.notify("T2 temperatura previsoka !!!");
+         }
+      if ((prva<vlaga_niska_1)&&(n3t2==0))
+         {
+          n3t2=1;
+          Blynk.notify("T2 temperatura niska");
+         } 
+      
+      if ((prva<vlaga_preniska_1)&&(n4t2==0))
+         {
+          n4t2=1;
+          Blynk.notify("T2 temperatura preniska !!!");
+         }   
+    }  
+
+if(notifikacije_t5==HIGH)
+      {
+      if ((druga<vlaga_visoka_2))
+         n1t5=0;
+      if ((druga<vlaga_previsoka_2))
+         n2t5=0;
+      if ((druga>vlaga_niska_2))
+         n3t5=0;
+      if ((druga>vlaga_preniska_2))
+         n4t5=0;         
+         
+      if ((druga>vlaga_visoka_2)&&(n1t5==0))
+         {
+          n1t5=1;
+          Blynk.notify("Vanka temperatura visoka");
+         } 
+      
+      if ((druga>vlaga_previsoka_2)&&(n2t5==0))
+         {
+          n2t5=1;
+          Blynk.notify("Vanka temperatura previsoka !!!");
+         }
+      if ((druga<vlaga_niska_2)&&(n3t5==0))
+         {
+          n3t5=1;
+          Blynk.notify("Vanka temperatura niska");
+         } 
+      
+      if ((druga<vlaga_preniska_2)&&(n4t5==0))
+         {
+          n4t5=1;
+          Blynk.notify("Vanka temperatura preniska !!!");
+         }   
+      }  
+
+   
+    Blynk.run();
+    timer.run();   
+
+
 }
 
 void tempvalue()
