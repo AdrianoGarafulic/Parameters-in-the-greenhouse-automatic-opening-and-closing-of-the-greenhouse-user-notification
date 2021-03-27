@@ -2,6 +2,9 @@
  #include <ESP8266WiFi.h>
 #include <BlynkSimpleEsp8266.h>
 #include <SoftwareSerial.h>
+#define ONE_WIRE_BUS 2
+#include <OneWire.h>
+#include <DallasTemperature.h>
 // #include <SimpleTimer.h>
  
 char auth[] = "Dc7JizofxNe9-PqsrEXqRPDfQS85tozB ";
@@ -12,21 +15,24 @@ const char* ssid     = "GAASI_WIFI-EXT-2";
 const char* pass = "armando1";
  
 BlynkTimer  timer;
+OneWire oneWire(ONE_WIRE_BUS);
+DallasTemperature sensors(&oneWire);
  
 String myString; // complete message from arduino, which consistors of snesors data
 char rdata; // received charactors
  
-float prva,druga,treca;
+float prva,druga,treca,temp;
  
 void setup()
 {
   // Debug console
   Serial.begin(9600);
- 
+  sensors.begin(); 
   Blynk.begin(auth, ssid, pass);
-  timer.setInterval(900000L,sensorvalue1); //svaku 15 min
+  timer.setInterval(1000L,sensorvalue1); //svaku 15 min
   timer.setInterval(1000L,sensorvalue2);
   timer.setInterval(1000L,sensorvalue3); 
+  timer.setInterval(1000L,tempvalue); 
 
  
 }
@@ -57,6 +63,15 @@ if (Serial.available() > 0 )
         // end new code
       }
    }
+}
+
+void tempvalue()
+{
+ sensors.requestTemperatures();
+ temp= sensors.getTempCByIndex(0);
+ // You can send any value at any time.
+ // Please don't send more that 10 values per second.
+ Blynk.virtualWrite(V5, temp);
 }
  
 void sensorvalue1()
