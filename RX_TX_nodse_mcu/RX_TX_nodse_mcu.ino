@@ -1,8 +1,9 @@
 #define BLYNK_PRINT Serial
- #include <ESP8266WiFi.h>
+#include <ESP8266WiFi.h>
 #include <BlynkSimpleEsp8266.h>
 #include <SoftwareSerial.h>
 #define ONE_WIRE_BUS 2
+#define relej_svitlo 12
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include <WiFiUdp.h>
@@ -15,8 +16,8 @@ char auth[] = "MfyPfotapG4rRVeeIMrlQD9Ox-PXX0oJ";
 // Set password to "" for open networks.
 const char* ssid     = "GAASI_WIFI-EXT-2";
 const char* pass = "armando1";
-int temp_visoka_t1, temp_previsoka_t1, temp_niska_t1, temp_preniska_t1,vlaga_visoka_1, vlaga_previsoka_1, vlaga_niska_1, vlaga_preniska_1,vlaga_visoka_2, vlaga_previsoka_2, vlaga_niska_2, vlaga_preniska_2;
-bool notifikacije_t1,n1t1=0,n2t1=0,n3t1,n4t1,notifikacije_t2,n1t2=0,n2t2=0,n3t2,n4t2,notifikacije_t5,n1t5=0,n2t5=0,n3t5,n4t5;
+int temp_visoka_t1, temp_previsoka_t1, temp_niska_t1, temp_preniska_t1,temp_gasi_svitlo=45,vlaga_visoka_1, vlaga_previsoka_1, vlaga_niska_1, vlaga_preniska_1,vlaga_visoka_2, vlaga_previsoka_2, vlaga_niska_2, vlaga_preniska_2;
+bool notifikacije_t1,n1t1=0,n2t1=0,n3t1,n4t1,n5t1,notifikacije_t2,n1t2=0,n2t2=0,n3t2,n4t2,notifikacije_t5,n1t5=0,n2t5=0,n3t5,n4t5,da_ili_ne_gosi_svitlo;
  
 BlynkTimer  timer;
 OneWire oneWire(ONE_WIRE_BUS);
@@ -47,6 +48,8 @@ BLYNK_CONNECTED()
   Blynk.syncVirtual(V22);
   Blynk.syncVirtual(V23);
   Blynk.syncVirtual(V24);
+  Blynk.syncVirtual(V25);
+  Blynk.syncVirtual(V26);
    
 }
 
@@ -118,6 +121,15 @@ BLYNK_WRITE(V23)
 {
  notifikacije_t5=param.asInt();
 }
+ BLYNK_WRITE(V25)
+{
+ temp_gasi_svitlo=param.asInt();
+}
+BLYNK_WRITE(V26)
+{
+da_ili_ne_gosi_svitlo=param.asInt();
+}
+
 
 BLYNK_WRITE(V1) 
 {//reset botun
@@ -136,6 +148,8 @@ void setup()
   Serial.begin(9600);
   sensors.begin(); 
   Blynk.begin(auth, ssid, pass);
+  pinMode(relej_svitlo,OUTPUT);
+  digitalWrite(relej_svitlo,LOW);
   timer.setInterval(1000L,sensorvalue1); //svaku 15 min
   timer.setInterval(1000L,sensorvalue2);
   timer.setInterval(1000L,sensorvalue3); 
@@ -170,6 +184,7 @@ if (Serial.available() > 0 )
         // end new code
       }
    }
+   
 if(notifikacije_t1==HIGH)
     {
       if ((temp<temp_visoka_t1))
@@ -179,7 +194,8 @@ if(notifikacije_t1==HIGH)
       if ((temp>temp_niska_t1))
          n3t1=0;
       if ((temp>temp_preniska_t1))
-         n4t1=0;         
+         n4t1=0;  
+            
          
       if ((temp>temp_visoka_t1)&&(n1t1==0))
          {
@@ -203,7 +219,7 @@ if(notifikacije_t1==HIGH)
           n4t1=1;
           Blynk.notify("T1 temperatura preniska !!!");
          }   
-    }  
+     }  
 if(notifikacije_t2==HIGH)
     {
       if ((prva<vlaga_visoka_1))
@@ -218,24 +234,24 @@ if(notifikacije_t2==HIGH)
       if ((prva>vlaga_visoka_1)&&(n1t2==0))
          {
           n1t2=1;
-          Blynk.notify("T2 temperatura visoka");
+          Blynk.notify("T2 Vlaga 1 visoka");
          } 
       
       if ((prva>vlaga_previsoka_1)&&(n2t2==0))
          {
           n2t2=1;
-          Blynk.notify("T2 temperatura previsoka !!!");
+          Blynk.notify("Vlaga 1 previsoka !!!");
          }
       if ((prva<vlaga_niska_1)&&(n3t2==0))
          {
           n3t2=1;
-          Blynk.notify("T2 temperatura niska");
+          Blynk.notify("Vlaga 1 niska");
          } 
       
       if ((prva<vlaga_preniska_1)&&(n4t2==0))
          {
           n4t2=1;
-          Blynk.notify("T2 temperatura preniska !!!");
+          Blynk.notify("Vlaga 1 preniska !!!");
          }   
     }  
 
@@ -253,31 +269,48 @@ if(notifikacije_t5==HIGH)
       if ((druga>vlaga_visoka_2)&&(n1t5==0))
          {
           n1t5=1;
-          Blynk.notify("Vanka temperatura visoka");
+          Blynk.notify("Vlaga 2 visoka");
          } 
       
       if ((druga>vlaga_previsoka_2)&&(n2t5==0))
          {
           n2t5=1;
-          Blynk.notify("Vanka temperatura previsoka !!!");
+          Blynk.notify("Vlaga 2 previsoka !!!");
          }
       if ((druga<vlaga_niska_2)&&(n3t5==0))
          {
           n3t5=1;
-          Blynk.notify("Vanka temperatura niska");
+          Blynk.notify("Vlaga 2 niska");
          } 
       
       if ((druga<vlaga_preniska_2)&&(n4t5==0))
          {
           n4t5=1;
-          Blynk.notify("Vanka temperatura preniska !!!");
+          Blynk.notify("Vlaga 2 preniska !!!");
          }   
       }  
-
-   
-    Blynk.run();
-    timer.run();   
-
+    
+if(da_ili_ne_gosi_svitlo==HIGH)
+    {  
+      if ((temp<temp_gasi_svitlo-5))
+      {
+        n5t1=0;
+        digitalWrite(relej_svitlo,LOW);
+        
+      }
+      if ((temp>temp_gasi_svitlo)&&(n5t1==0))
+       {
+              n5t1=1;
+              digitalWrite(relej_svitlo,HIGH);
+              Blynk.notify("Ugašeno svitlo  !!!!!");
+       }
+     
+      
+        
+    }                
+  
+Blynk.run();
+timer.run();   
 
 }
 
