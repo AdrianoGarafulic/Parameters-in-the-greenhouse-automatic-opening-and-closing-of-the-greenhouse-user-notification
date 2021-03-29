@@ -4,6 +4,9 @@
 #include <SoftwareSerial.h>
 #define ONE_WIRE_BUS 2
 #define relej_svitlo 12
+#define RESET_PIN 14
+#define RESET_PIN_SLAVE 13
+
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include <WiFiUdp.h>
@@ -14,8 +17,8 @@ char auth[] = "MfyPfotapG4rRVeeIMrlQD9Ox-PXX0oJ";
  
 // Your WiFi credentials.
 // Set password to "" for open networks.
-const char* ssid     = "GAASI_WIFI-EXT-2";
-const char* pass = "armando1";
+const char* ssid     = "iPhone";
+const char* pass = "pagtrg40";
 int temp_visoka_t1, temp_previsoka_t1, temp_niska_t1, temp_preniska_t1,temp_gasi_svitlo=45,vlaga_visoka_1, vlaga_previsoka_1, vlaga_niska_1, vlaga_preniska_1,vlaga_visoka_2, vlaga_previsoka_2, vlaga_niska_2, vlaga_preniska_2;
 bool notifikacije_t1,n1t1=0,n2t1=0,n3t1,n4t1,n5t1,notifikacije_t2,n1t2=0,n2t2=0,n3t2,n4t2,notifikacije_t5,n1t5=0,n2t5=0,n3t5,n4t5,da_ili_ne_gosi_svitlo;
  
@@ -135,8 +138,21 @@ BLYNK_WRITE(V1)
 {//reset botun
  if((param.asInt()==1))
   {
-  ESP.restart();
+  digitalWrite(RESET_PIN,LOW);
   }
+  else
+   digitalWrite(RESET_PIN,HIGH);
+  
+}
+BLYNK_WRITE(V27) 
+{//reset SLAVE botun, resetiranje slave-a odnosno ocitavanje realtime vrijednosti
+ if((param.asInt()==1))
+  {
+  digitalWrite(RESET_PIN_SLAVE,LOW);
+  }
+  else
+   digitalWrite(RESET_PIN_SLAVE,HIGH);
+  
 }
 
 
@@ -144,12 +160,17 @@ BLYNK_WRITE(V1)
  
 void setup()
 {
+  digitalWrite(RESET_PIN,HIGH);
+  digitalWrite(RESET_PIN_SLAVE,HIGH);
   // Debug console
   Serial.begin(9600);
   sensors.begin(); 
   Blynk.begin(auth, ssid, pass);
   pinMode(relej_svitlo,OUTPUT);
+  pinMode(RESET_PIN,OUTPUT);
+  pinMode(RESET_PIN_SLAVE,OUTPUT);
   digitalWrite(relej_svitlo,LOW);
+
   timer.setInterval(1000L,sensorvalue1); //svaku 15 min
   timer.setInterval(1000L,sensorvalue2);
   timer.setInterval(1000L,sensorvalue3); 
@@ -175,11 +196,11 @@ if (Serial.available() > 0 )
       {
         String l = getValue(myString, ',', 0);
         String m = getValue(myString, ',', 1);
-       // String n = getValue(myString, ',', 2); 
+        String n = getValue(myString, ',', 2); 
 
         prva = l.toFloat();
         druga = m.toInt();
-       // treca = n.toInt();
+        treca = n.toInt();
         myString = "";
         // end new code
       }
