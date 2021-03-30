@@ -346,7 +346,7 @@ void tempvalue()
 
 void sensorvalue1()
 {
-  float sdata = prva;
+  int sdata = prva;
   // You can send any value at any time.
   // Please don't send more that 10 values per second.
   Blynk.virtualWrite(V2, sdata);
