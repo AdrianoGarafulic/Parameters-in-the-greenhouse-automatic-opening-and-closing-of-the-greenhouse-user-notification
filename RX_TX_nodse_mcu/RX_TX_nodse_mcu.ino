@@ -17,8 +17,8 @@ char auth[] = "MfyPfotapG4rRVeeIMrlQD9Ox-PXX0oJ";
 
 // Your WiFi credentials.
 // Set password to "" for open networks.
-const char* ssid     = "GAASI_WIFI-EXT-2";
-const char* pass = "armando1";
+const char* ssid     = "moja mreza";
+const char* pass = "20592059";
 int temp_visoka_t1, temp_previsoka_t1, temp_niska_t1, temp_preniska_t1, temp_gasi_svitlo = 45, vlaga_visoka_1, vlaga_previsoka_1, vlaga_niska_1, vlaga_preniska_1, vlaga_visoka_2, vlaga_previsoka_2, vlaga_niska_2, vlaga_preniska_2;
 bool notifikacije_t1, n1t1 = 0, n2t1 = 0, n3t1, n4t1, n5t1, notifikacije_t2, n1t2 = 0, n2t2 = 0, n3t2, n4t2, notifikacije_t5, n1t5 = 0, n2t5 = 0, n3t5, n4t5, da_ili_ne_gosi_svitlo;
 
